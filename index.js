@@ -1,17 +1,6 @@
 'use strict'
 
-// 23+24+(56/3-23/2)+24+70*2
-
 var calculateFormula = function (fString) {
-
-  // find hooks opened and closed
-  // get substring between hooks and
-  // put it to the function for calculate
-  // then replace all in hooks with hooks with calculated 
-
-
-
-
 
   var formula = fString
   var marks = ['/', '*', '-', '+']
@@ -19,7 +8,7 @@ var calculateFormula = function (fString) {
   var index
 
   marks.forEach(function (val) {
-    index = formula.indexOf(marks[0])
+    index = formula.indexOf(val)
     if (index > -1) {
       marksNumber[val] = formula.split(val).length - 1
     }
@@ -44,6 +33,7 @@ var calculateFormula = function (fString) {
     }
   })
 
+
   var indexMark = 0
   var number1 = 0
   var number2 = 0
@@ -56,7 +46,6 @@ var calculateFormula = function (fString) {
       result = 0
 
       indexMark = arr.indexOf(key)
-      console.log('было = ', arr)
 
       if (indexMark) {
         number1 = parseInt(arr[indexMark - 1])
@@ -79,11 +68,69 @@ var calculateFormula = function (fString) {
         }
 
         arr.splice(indexMark - 1, 3, result + '')
-        console.log('стало = ', arr)
       }
     }
   }
+
+  return arr[0]
 }
 
-var f = calculateFormula('23+7*3+24+56/3-23/2+24+70*2-5')
-console.log(f)
+function calculateWithBrackets(fString) {
+  var strTemp = fString
+  var brackets = []
+  var j = 0
+  var N = strTemp.length
+  var subStr = ''
+  var newStr = ''
+  var result = ''
+  var signBefore = '+'
+
+  while(true) {
+    switch (strTemp[j]) {
+      case '(':
+        brackets[brackets.length] = {'open': j}
+        break
+      case ')':
+        for (var i = brackets.length - 1; i > -1; i--) {
+          if (!brackets[i].close) {
+            brackets[i].close = j
+
+            subStr = strTemp.substring(brackets[i].open + 1, brackets[i].close)
+            result = calculateFormula(subStr)
+            signBefore = strTemp.substring(brackets[i].open - 1, brackets[i].open)
+
+            if (result >= 0 && (signBefore === '+' || signBefore === '-')) {
+              newStr = strTemp.substring(0, brackets[i].open) + result + strTemp.substring(brackets[i].close + 1)
+            } else if (result < 0 && signBefore === '-') {
+              result = Math.abs(result)
+              newStr = strTemp.substring(0, brackets[i].open - 1) + '+' + result + strTemp.substring(brackets[i].close + 1)
+            } else {
+              newStr = strTemp.substring(0, brackets[i].open - 1) + Math.abs(result) + strTemp.substring(brackets[i].close + 1)
+            }
+
+            strTemp = newStr
+            N = strTemp.length
+            j = brackets[i].open - 1
+
+            i = -1
+          }
+        }
+        break
+    }
+
+
+    if (j === N) {
+      break
+    } else {
+      j++
+    }
+  }
+
+  return calculateFormula(strTemp)
+}
+
+var f = calculateWithBrackets('23+(7*3+24)+(56/3-23/2+(8-(8/4+7*6-56))+45)+(24+70*2)-5')
+
+// it`s working too
+//console.log('calculateFormula = ', (new Function('return (' + '23+(7*3+24)+(56/3-23/2+(8-(8/4+7*6-56))+45)+(24+70*2)-5' + ')'))())
+//console.log('calculateFormula = ', eval('23+(7*3+24)+(56/3-23/2+(8-(8/4+7*6-56))+45)+(24+70*2)-5'))
